@@ -52,11 +52,10 @@ pytest                      # Lua script against redis-server, helper scripts
 cd gateway && mvn test      # PlanResolver and RetryAfter unit tests
 ```
 
-## Results (fill only from your own runs)
+## Results (measured on a Windows laptop with Docker Desktop, one run each)
 | Metric | Value | How measured |
 |---|---|---|
-| Python tests | | `pytest` |
-| Java tests | | `mvn test` in `gateway` |
-| Allowed vs expected, 1 replica | | `burst_check.py` |
-| Allowed vs expected, 3 replicas | | `burst_check.py` via nginx |
-| Gateway latency p50 / p95 | | `burst_check.py` (note: includes your machine and Docker) |
+| Java tests | 8 passed | `mvn test` in `gateway` |
+| Allowed vs expected, 1 replica | 10 of 100 allowed, 90 limited (expected ~10.3) | `burst_check.py`, free plan: capacity 10, refill 2/s |
+| Allowed vs expected, 3 replicas | 11 of 100 allowed, 89 limited (expected ~12.1) | `burst_check.py` via nginx; per-replica traffic 33 / 33 / 34 |
+| Gateway latency p50 / p95 | 1 replica: 21.8 / 55.9 ms. 3 replicas via nginx: 47.1 / 1011 ms | `burst_check.py`; 100 requests only, p95 includes first-request start-up. Not a proper benchmark. |
