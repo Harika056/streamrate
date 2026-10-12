@@ -1,0 +1,44 @@
+# Full stack: nginx -> 3 gateway replicas -> upstream, shared Redis, Prometheus, Grafana.
+# Quick start for development: `docker compose up -d redis` only, then run the Java apps with Maven.
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  upstream:
+    build: ./upstream
+
+  gateway:
+    build: ./gateway
+    environment:
+      REDIS_HOST: redis
+      UPSTREAM_URL: http://upstream:9000
+      TRUST_FORWARDED_FOR: "true"
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me-0123456789abcdef}
+    depends_on: [redis, upstream]
+    deploy:
+      replicas: 3
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports: ["8080:80"]
+    volumes: ["./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro"]
+    depends_on: [gateway]
+    restart: on-failure
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    ports: ["9090:9090"]
+    volumes: ["./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    depends_on: [gateway]
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports: ["3000:3000"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    volumes:
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [prometheus]

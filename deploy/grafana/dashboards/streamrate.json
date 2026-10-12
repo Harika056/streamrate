@@ -1,0 +1,22 @@
+{
+  "title": "StreamRate",
+  "uid": "streamrate",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": {"from": "now-15m", "to": "now"},
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Requests per second by result",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prom"},
+      "targets": [{"refId": "A", "expr": "sum by (result) (rate(streamrate_requests_total[1m]))", "legendFormat": "{{result}}"}]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Requests per second by plan",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prom"},
+      "targets": [{"refId": "A", "expr": "sum by (plan) (rate(streamrate_requests_total[1m]))", "legendFormat": "{{plan}}"}]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: streamrate-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cloud:
+    gateway:
+      routes:
+        - id: upstream
+          uri: ${UPSTREAM_URL:http://localhost:9000}
+          predicates:
+            - Path=/api/**,/secure/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
+
+streamrate:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-secret-change-me-0123456789abcdef}
+    protected-prefixes:
+      - /secure/
+  ratelimit:
+    enabled: true
+    fail-open: true
+    redis-timeout-ms: 250
+    trust-forwarded-for: ${TRUST_FORWARDED_FOR:false}
+    default-plan:
+      capacity: 10
+      refill-per-second: 5
+    plans:
+      free:
+        capacity: 10
+        refill-per-second: 2
+      pro:
+        capacity: 100
+        refill-per-second: 50
+      jwt:
+        capacity: 20
+        refill-per-second: 10
+      anonymous:
+        capacity: 5
+        refill-per-second: 1
+    api-keys:
+      demo-free-key: free
+      demo-pro-key: pro
